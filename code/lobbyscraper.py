@@ -6,12 +6,12 @@ This is a scraper for the Austrian Lobbying-Register. It fetches the HTML, saves
 and converts the relevant data into a json file.
 """
 
-import scraperwiki
-import lxml.html
 import re
 from datetime import datetime, date, time
 import json
 import os
+from bs4 import BeautifulSoup
+import urllib2
 
 __author__ = "Stefan Kasberger"
 __copyright__ = "Copyright 2015"
@@ -26,10 +26,31 @@ __status__ = "Development" # 'Development', 'Production' or 'Prototype'
 BASE_URL = 'http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf'
 QUERY_URL = BASE_URL+'/liste!OpenForm&subf=a'
 ROOT_FOLDER = os.path.dirname(os.getcwd())
+FOLDER_HTML = ROOT_FOLDER + '/data/raw/'
+FOLDER_JSON = ROOT_FOLDER + '/data/json/'
 FILENAME_HTML = 'lobbyingregister.htm'
 FILENAME_JSON = 'lobbyingregister.json'
 
 ###    FUNCTIONS   ###
+
+def SetupEnvironment():
+    if not os.path.exists(FOLDER_HTML):
+        os.makedirs(FOLDER_HTML)
+    if not os.path.exists(FOLDER_JSON):
+        os.makedirs(FOLDER_JSON)
+
+def FetchHtml(url):
+    """Fetches html url via urllib().
+    
+    Args:
+        url: url to fetch
+    
+    Returns:
+        html string as unicode
+    """
+    response = urllib2.urlopen(url)
+    rawHtml = response.read().decode('utf-8')
+    return rawHtml
 
 def FetchHtmlList(url, folder, filename):
     """Fetches html from the overview list of the lobbyingregister entries and saves it locally.
@@ -42,7 +63,7 @@ def FetchHtmlList(url, folder, filename):
     Returns:
         html string
     """
-    rawHtml = scraperwiki.scrape(url)
+    rawHtml = FetchHtml(url)
     if not os.path.exists(folder):
         os.makedirs(folder)
     Save2File(rawHtml, folder+'/'+filename)
@@ -61,9 +82,8 @@ def FetchHtmlOrganisations(organisations, folder):
     html = {}
     for id in organisations.keys():
         organisation = organisations[id]
-        rawHtml = scraperwiki.scrape(organisation['url'])
-        Save2File(rawHtml, folder+'/'+str(id)+'.htm')
-        html[id] = rawHtml
+        html[id] = FetchHtml(organisation['url'])
+        Save2File(html[id], folder+'/'+str(id)+'.htm')
     return html
 
 def Save2File(data, filename):
@@ -77,7 +97,7 @@ def Save2File(data, filename):
         na
     """
     text_file = open(filename, "w")
-    text_file.write(data)
+    text_file.write(data.encode('utf-8'))
     text_file.close()
 
 def ReadFile(filename):
@@ -121,20 +141,20 @@ def ParseList(html, timestamp):
     """
     lobbyList = {}
     counter = 0
-
-    root = lxml.html.fromstring(html)
+    # root = lxml.html.fromstring(html)
+    soup = BeautifulSoup(html)
 
     # loop over table rows
-    for tr in root.cssselect("tbody tr"):
-        tds = tr.cssselect("td")
-        
+    for tr in soup.tbody.find_all('tr'):
+        tds = tr.find_all('td')
+
         # assign variables from html table to dict
         organisation = {}
-        organisation['description'] =  tds[1].text_content()          # organisation
-        organisation['registry-department'] =  tds[3].text_content()        # register department
-        organisation['url'] =  BASE_URL+'/'+tds[2][0].get('href') # register number url
-        organisation['last-update'] = str(datetime.strptime(tds[5].text_content(), '%d.%m.%Y')) # last update
-        organisation['register-number'] = tds[2].text_content()
+        organisation['description'] =  unicode(tds[1].string) # organisation
+        organisation['registry-department'] =  tds[3].string # register department
+        organisation['url'] =  BASE_URL+'/'+tds[2].a['href'] # register number url
+        organisation['last-update'] = str(datetime.strptime(tds[5].string, '%d.%m.%Y')) # last update
+        organisation['register-number'] = tds[2].string
         # organisation['details'] =  lxml.html.tostring(tds[4], encoding='unicode')[4:-4].split('<br>')[:-1] # details
         
         lobbyList[counter] = organisation
@@ -153,21 +173,20 @@ def ParseOrganisations(htmlList, organisations):
     """
 
     for id in organisations.keys():
-        # root = lxml.html.fromstring(html, encoding='unicode')
-        root = lxml.html.fromstring(htmlList[id])
-        html = lxml.etree.tostring(root)
-
+        soup = BeautifulSoup(htmlList[id])
+        html = unicode(soup)
+       
         # regex type of registry department: B, C 
         regDepartment = re.findall(r'Registerabteilung:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regDepartment:
             if organisations[id]['registry-department'] != regDepartment[0]:
-                print "ERROR: register department differs!"
+                print 'ERROR: register department differs!'
 
         # regex register number: B, C
         regNum = re.findall(r'Registerzahl:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regNum:
             if organisations[id]['register-number'] != regNum[0]:
-                print "ERROR: register number differs!"
+                print 'ERROR: register number differs!'
 
         # regex name: A1, B, C
         name = re.findall(r'Name.*:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
@@ -198,12 +217,12 @@ def ParseOrganisations(htmlList, organisations):
         # regex mail address: A1, C, D
         mailAddress = re.findall(r'nschrift:</dt>\n<dd>(.*)</dd></dl>', html)
         if mailAddress:
-            organisations[id]['mail-address'] = mailAddress[0]
+            organisations[id]['mailing-address'] = mailAddress[0]
 
         # regex start business year: A1
-        startBusinessYear = re.findall(r'Beginn des Geschäftsjahres:</dt>\n<dd>(.*)</dd></dl>', html)
+        startBusinessYear = re.findall(r'ftsjahres:</dt>\n<dd>(.*)</dd></dl>', html)
         if startBusinessYear:
-            organisations[id]['start-business-year'] = str(datetime.strptime(startBusinessYear[0], '%d.%m'))
+            organisations[id]['start-business-year'] = str(datetime.strptime(startBusinessYear[0], '%d.%m.'))
 
         # regex legal foundation: C
         legalFoundation = re.findall(r'Gesetzliche Grundlage:</dt>\n<dd>(.*)</dd></dl>', html)
@@ -271,14 +290,17 @@ def ParseOrganisations(htmlList, organisations):
 ###    MAIN   ###
 
 if __name__ == '__main__':
+    SetupEnvironment()
     ts = datetime.now().strftime('%Y-%m-%d-%H-%M')
-    # ts = '2015-05-04-16-11'
+    print ts
+    # ts = '2015-05-05-00-14'
     htmlList = FetchHtmlList(QUERY_URL, ROOT_FOLDER+'/data/raw/'+ts, FILENAME_HTML) # list(html as text)
-    htmlList = ReadFile(ROOT_FOLDER+'/data/raw/'+ts+'/'+FILENAME_HTML) # list(html as text)
+    htmlList = ReadFile(FOLDER_HTML+ts+'/'+FILENAME_HTML) # list(html as text)
     lobbyList = ParseList(htmlList, ts) # dict(registry-number: dict(url, type, description, etc))
-    Save2File(json.dumps(lobbyList, indent=2), ROOT_FOLDER+'/data/json/'+ts+'_'+FILENAME_JSON)
+    Save2File(json.dumps(lobbyList, indent=2, ensure_ascii=False), FOLDER_JSON+ts+'_'+FILENAME_JSON)
     htmlOrgas = FetchHtmlOrganisations(lobbyList, ROOT_FOLDER+'/data/raw/'+ts) # dict(registry-number: html)
-    htmlOrgas = ReadOrganisations(ROOT_FOLDER+'/data/raw/'+ts) # dict(registry-number: html)
+    htmlOrgas = ReadOrganisations(FOLDER_HTML+ts) # dict(registry-number: html)
     lobbyOrgas = ParseOrganisations(htmlOrgas, lobbyList)
-    Save2File(json.dumps(lobbyOrgas, indent=2), ROOT_FOLDER+'/data/json/'+ts+'_'+FILENAME_JSON)
+    Save2File(json.dumps(lobbyOrgas, indent=2, ensure_ascii=False), FOLDER_JSON+ts+'_'+FILENAME_JSON)
     # scraperwiki.sqlite.save(unique_keys=['', ''], data=data)
+

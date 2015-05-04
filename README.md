@@ -19,7 +19,7 @@ D 			Interest groups (Interessenverbände)
 - The 'Registerzahl' is no unique ID and is taken several times for different organisations, i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument)
 
 ### Scraper
-- Python with scraperwiki and [lxml](http://lxml.de/lxmlhtml.html) modules.
+- Python with modules urllib2 and BeautifulSoup.
 
 To run the [python script](code/lobbyscraper.py), just enter this in the terminal when you are in the root folder of the repository. 
 ```
@@ -70,6 +70,6 @@ Visit http://opensource.org/licenses/MIT to learn more about the MIT License.
 
 ## STRUCTURE
 - [python script](code/lobbyscraper.py)
-- [html-example](html-example.md)
+- [html examples for each organisation type](html-examples.md)
 - [CHANGELOG](CHANGELOG.md)
 - [LICENSE](LICENSE)

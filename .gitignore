@@ -1,0 +1,6 @@
+*.htm
+*.html
+/data
+/docs
+*.sublime-*
+notes.md
