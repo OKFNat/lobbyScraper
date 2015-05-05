@@ -9,7 +9,7 @@ This repository provides the code and [keeps track of bugs as well as feature re
 Some information about the Austrian lobbying register: 
 
 ### Lobbying Register
-**Types of lobbying organisations**
+**Types of lobbying organisations**  
 A1 			Lobbying-corporations or lobbyists (Lobbying-Unternehmen bzw. Lobbyisten)  
 A2 			Areas of activity of lobbying corporations (not public) (Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich))  
 B 			Companies or company-/(in-house-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)  
