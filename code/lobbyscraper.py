@@ -7,11 +7,14 @@ and converts the relevant data into a json file.
 """
 
 import re
-from datetime import datetime, date, time
+from datetime import datetime
 import json
 import os
 from bs4 import BeautifulSoup
-import urllib2
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 __author__ = "Stefan Kasberger"
 __copyright__ = "Copyright 2015"
@@ -41,10 +44,10 @@ def SetupEnvironment():
 
 def FetchHtml(url):
     """Fetches html url via urllib().
-    
+
     Args:
         url: url to fetch
-    
+
     Returns:
         html string as unicode
     """
@@ -54,12 +57,12 @@ def FetchHtml(url):
 
 def FetchHtmlList(url, folder, filename):
     """Fetches html from the overview list of the lobbyingregister entries and saves it locally.
-    
+
     Args:
         url: url to fetch
         folder: to save the html
         filename: filename for the html file
-    
+
     Returns:
         html string
     """
@@ -71,11 +74,11 @@ def FetchHtmlList(url, folder, filename):
 
 def FetchHtmlOrganisations(organisations, folder):
     """Fetches html from a lobbying-organisation and saves it locally.
-    
+
     Args:
         organisations: dict with sequencial id's of organisations as keys.
         folder: to save the html
-    
+
     Returns:
         dict() of sequencial id's of organisations as key and html as value.
     """
@@ -88,24 +91,24 @@ def FetchHtmlOrganisations(organisations, folder):
 
 def Save2File(data, filename):
     """Saves file locally
-    
+
     Args:
         data: string to save
         filename: name of the file
-    
+
     Returns:
         na
     """
-    text_file = open(filename, "w")
+    text_file = open(filename, "wb")
     text_file.write(data.encode('utf-8'))
     text_file.close()
 
 def ReadFile(filename):
     """Reads file and returns the html.
-    
+
     Args:
         filename: name of the file
-    
+
     Returns:
         html from the file.
     """
@@ -115,10 +118,10 @@ def ReadFile(filename):
 
 def ReadOrganisations(folder):
     """Reads in all html-files from the organisations folder.
-    
+
     Args:
         folder: folder where the organisation html-files are stored.
-    
+
     Returns:
         dict() of sequencial id's of organisations as key and html as value.
     """
@@ -129,13 +132,13 @@ def ReadOrganisations(folder):
             html[int(filename.split('.')[0])] = rawHtml
     return html
 
-def ParseList(html, timestamp):
+def ParseList(html):
     """Parses the needed facts out of the overview list html.
-    
+
     Args:
-        html: html string 
+        html: html string
         timestamp: time when the html download was started.
-    
+
     Returns:
         dict() of sequencial id's of organisations as key and dict() with facts as value.
     """
@@ -150,43 +153,49 @@ def ParseList(html, timestamp):
 
         # assign variables from html table to dict
         organisation = {}
-        organisation['description'] =  unicode(tds[1].string) # organisation
+        try:
+            organisation['description'] = unicode(tds[1].string) # organisation
+        except NameError:
+            organisation['description'] = tds[1].string # organisation
         organisation['registry-department'] =  tds[3].string # register department
         organisation['url'] =  BASE_URL+'/'+tds[2].a['href'] # register number url
         organisation['last-update'] = str(datetime.strptime(tds[5].string, '%d.%m.%Y')) # last update
         organisation['register-number'] = tds[2].string
         # organisation['details'] =  lxml.html.tostring(tds[4], encoding='unicode')[4:-4].split('<br>')[:-1] # details
-        
+
         lobbyList[counter] = organisation
         counter += 1
     return lobbyList
 
 def ParseOrganisations(htmlList, organisations):
     """Parses the needed facts out of the organisation html.
-    
+
     Args:
         htmlList: list() of html strings.
         organisations: dict() of sequencial id's of organisations as key and dict() with facts as value.
-    
+
     Returns:
         dict() of sequencial id's of organisations as key and dict() with facts as value.
     """
 
     for id in organisations.keys():
         soup = BeautifulSoup(htmlList[id])
-        html = unicode(soup)
-       
-        # regex type of registry department: B, C 
+        try:
+            html = unicode(soup)
+        except NameError:
+            html = str(soup)
+
+        # regex type of registry department: B, C
         regDepartment = re.findall(r'Registerabteilung:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regDepartment:
             if organisations[id]['registry-department'] != regDepartment[0]:
-                print 'ERROR: register department differs!'
+                print("ERROR: register department differs!")
 
         # regex register number: B, C
         regNum = re.findall(r'Registerzahl:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regNum:
             if organisations[id]['register-number'] != regNum[0]:
-                print 'ERROR: register number differs!'
+                print("ERROR: register number differs!")
 
         # regex name: A1, B, C
         name = re.findall(r'Name.*:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
@@ -202,7 +211,7 @@ def ParseOrganisations(htmlList, organisations):
         lastUpdate = re.findall(r'Letzte .*nderung:</dt>\n<dd>(.*)</dd>', html)
         if lastUpdate:
             if organisations[id]['last-update'] != str(datetime.strptime(lastUpdate[0], '%d.%m.%Y')):
-                print "ERROR: register last update differs!"
+                print("ERROR: register last update differs!")
 
         # regex corporate-number: A1
         corporateNumber = re.findall(r'Firmenbuchnummer:</dt>\n<dd>(.*)</dd>', html)
@@ -292,11 +301,11 @@ def ParseOrganisations(htmlList, organisations):
 if __name__ == '__main__':
     SetupEnvironment()
     ts = datetime.now().strftime('%Y-%m-%d-%H-%M')
-    print ts
+    print(ts)
     # ts = '2015-05-05-00-14'
     htmlList = FetchHtmlList(QUERY_URL, ROOT_FOLDER+'/data/raw/'+ts, FILENAME_HTML) # list(html as text)
     htmlList = ReadFile(FOLDER_HTML+ts+'/'+FILENAME_HTML) # list(html as text)
-    lobbyList = ParseList(htmlList, ts) # dict(registry-number: dict(url, type, description, etc))
+    lobbyList = ParseList(htmlList) # dict(registry-number: dict(url, type, description, etc))
     Save2File(json.dumps(lobbyList, indent=2, ensure_ascii=False), FOLDER_JSON+ts+'_'+FILENAME_JSON)
     htmlOrgas = FetchHtmlOrganisations(lobbyList, ROOT_FOLDER+'/data/raw/'+ts) # dict(registry-number: html)
     htmlOrgas = ReadOrganisations(FOLDER_HTML+ts) # dict(registry-number: html)
