@@ -1,19 +1,19 @@
-Scraper Lobbyingregister AT
-==============================
+lobbyscraper: Scraping the Austrian lobbying registry
+======================================================
 
-This repository is a python script to scrape the [Austrian Lobbyingregister](http://www.lobbyreg.justiz.gv.at). The scraper was written as part of the [Gute Taten für gute Daten](http://okfn.at/gutedaten/) project from [Open Knowledge Austria](http://okfn.at) and is licensed under [MIT](http://opensource.org/licenses/MIT).
+This repository is a python script to scrape the [Austrian lobbying register](http://www.lobbyreg.justiz.gv.at). The scraper was written for the [Gute Taten für gute Daten](http://okfn.at/gutedaten/) project from [Open Knowledge Austria](http://okfn.at) and is available under the [MIT open source license](http://opensource.org/licenses/MIT).
 
-This repository provides the [issue tracker](https://github.com/GSA/data.gov/issues) for all code, bugs, and feature requests related to this project.
+This repository provides the code and [keeps track of bugs as well as feature requests](https://github.com/GSA/data.gov/issues).
 
 ## DOCUMENTATION
-Some information about the Austrian Lobbyingregister. 
+Some information about the Austrian lobbying register: 
 
-### Lobbyingregister
+### Lobbying Register
 **Types of lobbying organisations**
-A1 			Lobbying-corporations or lobbyisten (Lobbying-Unternehmen bzw. Lobbyisten)
+A1 			Lobbying-corporations or lobbyists (Lobbying-Unternehmen bzw. Lobbyisten)
 A2 			Areas of activity of lobbying corporations (not public) (Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich))
-B 			Corporations or company-/(In-House-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)
-C 			self-governing bodies (Selbstverwaltungskörper)
+B 			Companies or company-/(in-house-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)
+C 			Self-governing bodies (Selbstverwaltungskörper)
 D 			Interest groups (Interessenverbände)
 
 - The 'Registerzahl' is no unique ID and is taken several times for different organisations, i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument)
@@ -51,11 +51,11 @@ Here are some ways you can contribute:
 - by reviewing pull requests
 - by enriching the data with other data sources
 
-When you are ready, submit a [pull request](https://github.com/okfnat/scraper_lobbyingregister/pulls).
+When you are ready, submit a [pull request](https://github.com/okfnat/lobbyscraper/pulls).
 
 ##Submitting an Issue
 
-We use the [GitHub issue tracker](https://github.com/okfnat/scraper_lobbyingregister/issues) to track bugs and features. Before submitting a bug report or feature request, check to make sure it hasn't already been submitted. When submitting a bug report, please try to provide a screenshot that demonstrates the problem. 
+We use the [GitHub issue tracker](https://github.com/OKFNat/lobbyscraper/issues) to track bugs and features. Before submitting a bug report or feature request, check to make sure it hasn't already been submitted. When submitting a bug report, please try to provide a screenshot that demonstrates the problem. 
 
 ## License
 
