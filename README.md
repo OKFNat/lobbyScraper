@@ -1,5 +1,5 @@
-lobbyscraper: Scraping the Austrian lobbying registry
-======================================================
+lobbysraper: Getting data from the Austrian lobbying register
+=============================================================
 
 This repository is a python script to scrape the [Austrian lobbying register](http://www.lobbyreg.justiz.gv.at). The scraper was written for the [Gute Taten für gute Daten](http://okfn.at/gutedaten/) project from [Open Knowledge Austria](http://okfn.at) and is available under the [MIT open source license](http://opensource.org/licenses/MIT).
 
