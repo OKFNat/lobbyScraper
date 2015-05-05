@@ -10,11 +10,11 @@ Some information about the Austrian lobbying register:
 
 ### Lobbying Register
 **Types of lobbying organisations**
-A1 			Lobbying-corporations or lobbyists (Lobbying-Unternehmen bzw. Lobbyisten)
-A2 			Areas of activity of lobbying corporations (not public) (Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich))
-B 			Companies or company-/(in-house-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)
-C 			Self-governing bodies (Selbstverwaltungskörper)
-D 			Interest groups (Interessenverbände)
+A1 			Lobbying-corporations or lobbyists (Lobbying-Unternehmen bzw. Lobbyisten)  
+A2 			Areas of activity of lobbying corporations (not public) (Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich))  
+B 			Companies or company-/(in-house-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)  
+C 			Self-governing bodies (Selbstverwaltungskörper)  
+D 			Interest groups (Interessenverbände)  
 
 - The 'Registerzahl' is no unique ID and is taken several times for different organisations, i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument)
 
