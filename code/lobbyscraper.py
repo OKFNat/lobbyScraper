@@ -12,6 +12,7 @@ import json
 import os
 from bs4 import BeautifulSoup
 import urllib2
+import pandas as pd
 
 __author__ = "Stefan Kasberger"
 __copyright__ = "Copyright 2015"
@@ -28,8 +29,10 @@ QUERY_URL = BASE_URL+'/liste!OpenForm&subf=a'
 ROOT_FOLDER = os.path.dirname(os.getcwd())
 FOLDER_HTML = ROOT_FOLDER + '/data/raw/'
 FOLDER_JSON = ROOT_FOLDER + '/data/json/'
+FOLDER_CSV = ROOT_FOLDER + '/data/csv/'
 FILENAME_HTML = 'lobbyingregister.htm'
 FILENAME_JSON = 'lobbyingregister.json'
+FILENAME_CSV = 'lobbyingregister.csv'
 
 ###    FUNCTIONS   ###
 
@@ -38,6 +41,8 @@ def SetupEnvironment():
         os.makedirs(FOLDER_HTML)
     if not os.path.exists(FOLDER_JSON):
         os.makedirs(FOLDER_JSON)
+    if not os.path.exists(FOLDER_CSV):
+        os.makedirs(FOLDER_CSV)
 
 def FetchHtml(url):
     """Fetches html url via urllib().
@@ -99,6 +104,20 @@ def Save2File(data, filename):
     text_file.write(data.encode('utf-8'))
     text_file.close()
 
+def Save2CSV(data, filename):
+    """Exports the dict into a csv file. Uses pandas dataframe and write csv functions.
+    
+    Args:
+        data: dict() with all the data
+        filename: name of the file with folder
+    
+    Returns:
+        na
+    """
+    data = pd.DataFrame(data)
+    data = data.T
+    data.to_csv(filename, sep=';', encoding='utf-8')
+
 def ReadFile(filename):
     """Reads file and returns the html.
     
@@ -140,9 +159,9 @@ def ParseList(html, timestamp):
     """
     lobbyList = {}
     counter = 0
-    # root = lxml.html.fromstring(html)
-    soup = BeautifulSoup(html)
 
+    soup = BeautifulSoup(html)
+    
     # loop over table rows
     for tr in soup.tbody.find_all('tr'):
         tds = tr.find_all('td')
@@ -154,7 +173,6 @@ def ParseList(html, timestamp):
         organisation['url'] =  BASE_URL+'/'+tds[2].a['href'] # register number url
         organisation['last-update'] = str(datetime.strptime(tds[5].string, '%d.%m.%Y')) # last update
         organisation['register-number'] = tds[2].string
-        # organisation['details'] =  lxml.html.tostring(tds[4], encoding='unicode')[4:-4].split('<br>')[:-1] # details
         
         lobbyList[counter] = organisation
         counter += 1
@@ -290,16 +308,17 @@ def ParseOrganisations(htmlList, organisations):
 
 if __name__ == '__main__':
     SetupEnvironment()
-    ts = datetime.now().strftime('%Y-%m-%d-%H-%M')
+    # ts = datetime.now().strftime('%Y-%m-%d-%H-%M')
+    ts = '2015-05-05-00-37'
     print ts
-    # ts = '2015-05-05-00-14'
-    htmlList = FetchHtmlList(QUERY_URL, ROOT_FOLDER+'/data/raw/'+ts, FILENAME_HTML) # list(html as text)
+    # htmlList = FetchHtmlList(QUERY_URL, ROOT_FOLDER+'/data/raw/'+ts, FILENAME_HTML) # list(html as text)
     htmlList = ReadFile(FOLDER_HTML+ts+'/'+FILENAME_HTML) # list(html as text)
     lobbyList = ParseList(htmlList, ts) # dict(registry-number: dict(url, type, description, etc))
     Save2File(json.dumps(lobbyList, indent=2, ensure_ascii=False), FOLDER_JSON+ts+'_'+FILENAME_JSON)
-    htmlOrgas = FetchHtmlOrganisations(lobbyList, ROOT_FOLDER+'/data/raw/'+ts) # dict(registry-number: html)
+    # htmlOrgas = FetchHtmlOrganisations(lobbyList, ROOT_FOLDER+'/data/raw/'+ts) # dict(registry-number: html)
     htmlOrgas = ReadOrganisations(FOLDER_HTML+ts) # dict(registry-number: html)
     lobbyOrgas = ParseOrganisations(htmlOrgas, lobbyList)
     Save2File(json.dumps(lobbyOrgas, indent=2, ensure_ascii=False), FOLDER_JSON+ts+'_'+FILENAME_JSON)
+    Save2CSV(lobbyList, FOLDER_CSV+ts+'_'+FILENAME_CSV)
     # scraperwiki.sqlite.save(unique_keys=['', ''], data=data)
 
