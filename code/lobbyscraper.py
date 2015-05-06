@@ -81,8 +81,7 @@ def FetchHtmlOrganisations(organisations, folder):
     """
     html = {}
     for id in organisations.keys():
-        organisation = organisations[id]
-        html[id] = FetchHtml(organisation['url'])
+        html[id] = FetchHtml(organisations[id]['url'])
         Save2File(html[id], folder+'/'+str(id)+'.htm')
     return html
 
