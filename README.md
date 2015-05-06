@@ -67,8 +67,6 @@ Visit http://opensource.org/licenses/MIT to learn more about the MIT License.
 
 ## STRUCTURE
 - [README.md](README.md): Overview of repository
-
-## STRUCTURE
 - [python script](code/lobbyscraper.py)
 - [html examples for each organisation type](html-examples.md)
 - [CHANGELOG](CHANGELOG.md)
