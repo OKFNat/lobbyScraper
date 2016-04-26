@@ -1,5 +1,3 @@
-
-
 ## List
 [http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf)
 ```

@@ -1,41 +1,211 @@
-lobbysraper: Getting Data from the Austrian Lobbying Register
+Austrian Lobbyregister Scraper
 =============================================================
 
-This repository is a python script to scrape the [Austrian lobbying register](http://www.lobbyreg.justiz.gv.at). The scraper was written for the [Gute Taten für gute Daten](http://okfn.at/gutedaten/) project from [Open Knowledge Austria](http://okfn.at) and is available under the [MIT open source license](http://opensource.org/licenses/MIT).
+The scraper extracts data from the [Austrian Lobbying Register](http://www.lobbyreg.justiz.gv.at), which must be reported since 2013. The data are stored in CSV and JSON files to make the further usage as easy as possible.
 
-This repository provides the code and [keeps track of bugs as well as feature requests](https://github.com/GSA/data.gov/issues).
+This repository provides the code and documentation and [keeps track of bugs as well as feature requests](https://github.com/OKFNat/lobbyScraper/issues).
 
-## DOCUMENTATION
-Some information about the Austrian lobbying register: 
+- Team: [Gute Taten für gute Daten](http://okfn.at/gutedaten/) Project (Open Knowledge Austria)
+- Status: Production
+- Documentation: English
+- License: [MIT License](http://opensource.org/licenses/MIT) + [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/)
 
-### Lobbying Register
-**Types of lobbying organisations**  
-A1 			Lobbying-corporations or lobbyists (Lobbying-Unternehmen bzw. Lobbyisten)  
-A2 			Areas of activity of lobbying corporations (not public) (Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich))  
-B 			Companies or company-/(in-house-)lobbyists (Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten)  
-C 			Self-governing bodies (Selbstverwaltungskörper)  
-D 			Interest groups (Interessenverbände)  
+**Used software**
 
-- The 'Registerzahl' is no unique ID and is taken several times for different organisations, i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument)
+The sourcecode is written in Python 2. It was created with use of [iPython](http://ipython.org/), [BeautifulSoup4](http://www.crummy.com/software/BeautifulSoup/) and [urllib2](https://docs.python.org/2/library/urllib2.html).
 
-### Scraper
-- Python with modules urllib2 and BeautifulSoup.
+## SCRAPER
 
-To run the [python script](code/lobbyscraper.py), just enter this in the terminal when you are in the root folder of the repository. 
+**Description**
+
+The scraper fetches the overview page with the table and parses out the data with beautifulsoup4. Then the scraper goes into every lobbying register entry via the Registerzahl-link, stores the html and parses out the rest of the data available via regular expressions. At the end, the data is stored as JSON and CSV files for easy usage later on.
+
+**Run scraper**
+
+Go into the root folder of this repository and execute following commands in your terminal:
 ```
 cd code
 python lobbyscraper.py
 ```
-To ease the server, you should download the html files just once and then work locally. To do this, just uncomment in the main section the lines with the ```FetchHtmlList()``` and ```FetchHtmlOrganisations()``` call and change the ts variable to the name of the directory with the downloaded html-files.
 
-**computational chain**
-1. Fetch the website and store the html locally
-	- pack files after download into tar-ball and delete html-files.
-2. Extract facts from html and store it in a json-file 
-2. Compare actual data with past one data
-3. update past one to the new state
+### How the scraper works
+**Configure the Scraper**
 
-## Contribution
+There are two global variables in [lobbyscraper.py](code/lobbyscraper.py) you may want to change to your needs.
+
+- DELAY_TIME: To not overload the server or may get blocked because of too many request, you should set the delay time to fetch to 1-5 seconds, not less.
+- TS: The timestamp as a string can be set to the last download. So you can use downloaded data over and over again and must not do it everytime. When you do it first time, you can set the value to ```datetime.now().strftime('%Y-%m-%d-%H-%M')```, so it is the timestamp when the scraper starts.
+
+**Download raw html**
+
+Here all the html raw data gets downloaded, stored locally and the basic data gets parsed.
+
+- Download the overview page with the tables (html).
+- Open the downloaded file.
+- Parse out the basic information about each lobbying register entry from the overview table. This is necessary here, because the download of the lobbying register entry page needs the link from the Registerzahl field.
+- Store the parsed data as JSON file.
+- Download all lobbying register entry pages (html) with the unique id as postfix.
+
+**Parse html**
+
+Here the description of the project gets added to the data.
+
+- Open the overview page.
+- Parse out the basic information about each lobbying register entry from the overview table. This is necessary here, because the download of the lobbying register entry page needs the link from the Registerzahl field.
+- Open all lobbying register entry pages (html).
+- Parse out the additional information from all lobbying register pages.
+- Store updated data as JSON file.
+
+The lobbying register does not publish the A2 entries, so the scraper never got tested with this and some A2 specific data entries are not part of the parser.
+
+**Download attachments**
+
+Here all attachments linked in the entry pages are stored locally.
+- open JSON file.
+- Download all attachments.
+
+**Export CSV**
+
+Here the data gets exported as a CSV file.
+- Open the data (JSON).
+- Save the serialized data as CSV file.
+
+## DATA INPUT
+The raw data is from the [Lobbying- und Interessenvertretungs-Register](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/liste!OpenForm&subf=a) of the austrian justice ministry. The data consists of all lobbying activities of
+- lobbying companies
+- corporations, who employ lobbyists in-house
+- self-governing bodies and
+- interest groups
+since January 1st of 2013. 
+
+More details about the register and it's data can be found [here](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/IR_Hinweise) und [hier](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/ir_Leitfaden/$file/Leitfaden.pdf).
+
+### The Table
+The table is the basic data, where most of the data is parsed out. The data is published in the following structure (e. g. first project).
+
+| Nr | Bezeichnung/Firma | Registerzahl | Registerabteilung | Details | Letzte Änderung |
+|----|-------------------|--------------|-------------------|---------|-----------------|
+| 2  | AbbVie GmbH, Wien, (378955m) | [LIVR-00054](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/edea53b6f0f5a4b3c1257b3900548209!OpenDocument) | B | Mag. Thomas Haslinger<br/>Mag. Bettina Theresia Kölbl-Resl | 09.11.2015 |
+
+**Attributes**
+- Nr: sequential number for each row which is not connected directly with the entry itself.
+- Bezeichnung/Firma (Description/Corporation): Name, company or description of company.
+- Registerzahl (registry number): the 'Registerzahl' is no unique ID and is taken several times for different organisations, i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument) lobbying entry.
+- Registerabteilung (type of lobbying organisations):
+	- A1: Lobbying-Unternehmen bzw. Lobbyisten (Lobbying-corporations or lobbyists)  
+	- A2: Aufgabenbereiche der Lobbying-Unternehmen (nicht öffentlich) (areas of activity of lobbying corporations (non-public))  
+	- B: Unternehmen bzw. Unternehmens-/(In-House-)Lobbyisten (companies or company-/(in-house-)lobbyists)  
+	- C: Selbstverwaltungskörper (self-governing bodies)  
+	- D: Interessenverbände (interest groups)  
+- Details: name(s) of lobbyist(s) if available.
+- Letzte Änderung (last update)
+
+### The lobbying entry pages
+Additionally the scraper also takes data from the more detailed pages of each lobbying-register entry, depending on the register type listed at the end.
+
+**Attributes**
+- Bekannt gemacht am (announced at): we guess it is the date, when (A1, C)
+- Name/Firma (name/company): (A1, B, C)
+- Firmenbuchnummer (company register number): only valid austrian company register numbers. (A1, B)
+- Firmensitz (register office): place of the register office (A1, C, D)
+- Geschäftsanschrift (postal address): address for postal activities. (A1, C, D)
+- Beginn des Geschäftsjahres (start of business year): in form of DD.MM. (A1, B)
+- Gesetzliche Grundlage (legal foundation): legal foundation for founding of the self-governing body. (C)
+- Tätigkeitsbereich (area of activity): short description of professional or business activities and/or the contractual or statuatory area of activity. (A1, B, D)
+- Verhaltenskodex (code of conduct): (A1, B)
+- Homepage (A1, B, C, D)
+- Unternehmenslobbyist/en (corporate lobbyist/s): Lobbyists and/or in-house lobbyists with name (first name familyname) and birthday. One each line. (A1, B)
+- Lobbying-Umsatz (lobbying revenue): revenue made through lobbying activities last business year. (A1)
+- Anzahl der bearbeiteten Lobbying-Aufträge (number of lobbying orders): number of lobbying orders from last year. (A1) 
+- Anzahl Interessenvertreter (number of lobbyists): full number of persons who where mostly lobbying in the last year. (C, D)
+- Lobbying-Aufwand > EUR 100.000 (lobbying costs > 100.000€): were the expenses for the last business year were more than 100.000€. (B)
+- Kosten der Interessenvertretung (costs of lobbying): from accountant or other statuatory or legal controll body confirmed costs from lobbying. (C, D)
+- PDF-Anhänge (pdf attachments): link(s) to submited pdf-attachments. (C)
+- Unterorganisationen (sub-organisations): one each line (C, D)
+- Kommentar (comment): more detailed information for aggregated data entries. (C, D)
+
+### Soundness
+So far, we can not say much about the data quality (completeness, accuracy, etc.), but there are also no reasons to doubt the entries.
+
+The lobbying register does not publish the A2 entries.
+
+**Data errors found**
+- Looks like the register number is sometimes wrong, cause it normally should be a unique number. (i. e. LIVR-00303 for [Österreichischer Apothekerverband](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/2371c20cd6f70fa8c1257bad002ee3a1!OpenDocument) and [Aktienforum - Österreichischer Verband für Aktien-Emittenten und -Investoren](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/alldoc/a61a8fdfd0122b8cc1257bad002edfd6!OpenDocument))
+
+## DATA OUTPUT
+
+**raw html**
+
+The scraper downloads all raw html of each lobbying register entry and the overview page.
+
+**lobbying data JSON**
+
+The parsed data is stored in an easy-to-read JSON file for further usage.
+```
+[
+	{
+		'ID': serial number created from scraper when parsing through the table rows.
+		'entryDescription': description of the entry.
+		'lobbyingOrgaType': type of lobbying organisation (A1, A2, B, C, D).
+		'url': url of the detail page.
+		'lastUpdate': last update of detail page.
+		'registryNumber': number of company in lobbying-register.
+		'orgaName': name of organisation.
+		'companyRegisterNumber': number of the national company register.
+		'businessActivities': area in which the organisation is active in business.
+		'postalAddress': postal address.
+		'registeredOffice': Place, where the company is officially registered.
+		'businessYearStart': Day, when the business year starts.
+		'legalFoundation': 
+		'codeOfConduct': Code of conduct.
+		'website': url of the website
+		'lobbyists': list of lobbyists.
+		'lobbyingRevenue': Revenue from lobbying.
+		'lobbyingRequests': Number of lobbying requests.
+		'numLobbyists': Number of lobbyists.
+		'lobbyingCostsGreater100000': 
+		'lobbyingCosts': Costs of lobbying.
+		'suborganisations': List of suborganisations.
+		'attachmentUrls': url to an attachment.
+		'comment': comment to precise other fields.
+	},
+]
+```
+
+**lobbying data csv**
+
+The parsed data is stored in a human-readable CSV file for further usage.
+
+columns (see attribute description above):
+- ID
+- entryDescription
+- orgaName
+- businessActivities
+- lobbyingOrgaType
+- lobbyists
+- lobbyingRevenue
+- lobbyingRequests
+- numLobbyists
+- lobbyingCostsGreater100000
+- lobbyingCosts
+- registryNumber
+- companyRegisterNumber
+- suborganisations
+- legalFoundation
+- codeOfConduct
+- registeredOffice
+- website
+- postalAddress
+- lastUpdate
+- dateAnnounced
+- businessYearStart
+- url
+- attachmentUrls
+- comment
+
+row: one lobbying register entry each row.
+
+## CONTRIBUTION
 In the spirit of free software, everyone is encouraged to help improve this project.
 
 Here are some ways you can contribute:
@@ -44,6 +214,7 @@ Here are some ways you can contribute:
 - by suggesting new features
 - by translating to a new language
 - by writing or editing documentation
+- by analyzing the data
 - by visualizing the data
 - by writing code (**no pull request is too small**: fix typos in the user interface, add code comments, clean up inconsistent whitespace)
 - by refactoring code
@@ -51,23 +222,52 @@ Here are some ways you can contribute:
 - by reviewing pull requests
 - by enriching the data with other data sources
 
-When you are ready, submit a [pull request](https://github.com/okfnat/lobbyscraper/pulls).
+When you are ready, submit a [pull request](https://github.com/OKFNat/lobbyscraper/pulls).
 
-##Submitting an Issue
+### Submitting an Issue
 
 We use the [GitHub issue tracker](https://github.com/OKFNat/lobbyscraper/issues) to track bugs and features. Before submitting a bug report or feature request, check to make sure it hasn't already been submitted. When submitting a bug report, please try to provide a screenshot that demonstrates the problem. 
 
-## License
+## COPYRIGHT
+All content is openly licensed under the [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/) license, unless otherwisely stated.
 
-This program is free software: you can redistribute it and/or modify it under the terms of the MIT License.
+All sourcecode is free software: you can redistribute it and/or modify it under the terms of the MIT License.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-Visit http://opensource.org/licenses/MIT to learn more about the MIT License.
+Visit [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT) to learn more about the MIT License.
 
-## STRUCTURE
+## REPOSITORY
 - [README.md](README.md): Overview of repository
-- [python script](code/lobbyscraper.py)
-- [html examples for each organisation type](html-examples.md)
-- [CHANGELOG](CHANGELOG.md)
+- [lobbyscraper.py](code/lobbyscraper.py): the scraper
+- [html-examples.md](html-examples.md): html examples for each organisation type
+- [CHANGELOG.md](CHANGELOG.md)
 - [LICENSE](LICENSE)
+
+## TODO
+**important**
+- verify the data
+- research: is there a difference between approved funding and paid one?
+- convert code to Python3: pay attention to encoding issues in i/o operations
+
+**optional**
+- create dataset for network analyses: json, csv for gephi and networkX
+- compare data from tables with data from project pages.
+- solve the encoding and CR issues. When saving the html table cells to the dict, it is done as unicode, so i did not work out how to replace the '\n' and '\r' characters. Did it then before storing to the CSV file, which is a quick and dirty solution. 
+
+**new features**
+- analyze and visualize the data: networkX, maps, Gephi
+- add country namecodes for easier combinating with other data
+
+## ACTUAL VERSION
+See the [whole history](CHANGELOG.md).
+
+### Version 0.2: 2016-04-26
+- update documentation: commenting code, update README.md
+- add csv export
+- re-factor code
+- add attachment download
+- add SQLite export
+
+
+
