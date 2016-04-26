@@ -247,17 +247,13 @@ Visit [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT) t
 ## TODO
 **important**
 - verify the data
-- research: is there a difference between approved funding and paid one?
 - convert code to Python3: pay attention to encoding issues in i/o operations
 
-**optional**
-- create dataset for network analyses: json, csv for gephi and networkX
-- compare data from tables with data from project pages.
-- solve the encoding and CR issues. When saving the html table cells to the dict, it is done as unicode, so i did not work out how to replace the '\n' and '\r' characters. Did it then before storing to the CSV file, which is a quick and dirty solution. 
-
 **new features**
-- analyze and visualize the data: networkX, maps, Gephi
+- analyze and visualize the data: networkX, maps, Gephi, frequencies, 
 - add country namecodes for easier combinating with other data
+- cluster into sectors
+- parse and map entitites (company name)
 
 ## ACTUAL VERSION
 See the [whole history](CHANGELOG.md).
