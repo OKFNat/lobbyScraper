@@ -5,10 +5,13 @@ The scraper extracts data from the [Austrian Lobbying Register](http://www.lobby
 
 This repository provides the code and documentation and [keeps track of bugs as well as feature requests](https://github.com/OKFNat/lobbyScraper/issues).
 
+- [Data Source](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/liste!OpenForm&subf=a)
 - Team: [Gute Taten für gute Daten](http://okfn.at/gutedaten/) Project (Open Knowledge Austria)
 - Status: Production
 - Documentation: English
-- License: [MIT License](http://opensource.org/licenses/MIT) + [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/)
+- License:
+	- Content: [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/)
+	- Software: [MIT License](http://opensource.org/licenses/MIT) 
 
 **Used software**
 
@@ -29,6 +32,7 @@ python lobbyscraper.py
 ```
 
 ### How the scraper works
+
 **Configure the Scraper**
 
 There are two global variables in [lobbyscraper.py](code/lobbyscraper.py) you may want to change to your needs.
@@ -71,6 +75,7 @@ Here the data gets exported as a CSV file.
 - Save the serialized data as CSV file.
 
 ## DATA INPUT
+
 The raw data is from the [Lobbying- und Interessenvertretungs-Register](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/liste!OpenForm&subf=a) of the austrian justice ministry. The data consists of all lobbying activities of
 - lobbying companies
 - corporations, who employ lobbyists in-house
@@ -81,7 +86,10 @@ since January 1st of 2013.
 More details about the register and it's data can be found [here](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/IR_Hinweise) und [hier](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/ir_Leitfaden/$file/Leitfaden.pdf).
 
 ### The Table
+
 The table is the basic data, where most of the data is parsed out. The data is published in the following structure (e. g. first project).
+
+**Example**
 
 | Nr | Bezeichnung/Firma | Registerzahl | Registerabteilung | Details | Letzte Änderung |
 |----|-------------------|--------------|-------------------|---------|-----------------|
@@ -237,26 +245,28 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 Visit [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT) to learn more about the MIT License.
 
+## SOURCES
+
+**Gute Taten für gute Daten**
+- [Gute Taten für gute Daten](http://okfn.at/gutedaten/)
+
+**Lobbying**
+- [Transparency International Austria](https://www.ti-austria.at/): Austrian Chapter of Transparency International.
+- [Lobbying in Austria](https://www.ti-austria.at/wp-content/uploads/2016/01/Lobbying-in-Austria.pdf): Publikation von Transparency International Austria
+
+**Documentation**
+- [Original Data Source](http://www.lobbyreg.justiz.gv.at/edikte/ir/iredi18.nsf/liste!OpenForm&subf=a)
+- [Hinweise zum Lobbyisten und Interessenvertretungsregister](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/IR_Hinweise)
+- [Leitfaden Lobbying- und Interessenvertretungsregister Erfassungsanwendung](http://www.lobbyreg.justiz.gv.at/edikte/ex/edparm3.nsf/h/ir_Leitfaden/$file/Leitfaden.pdf).
+
 ## REPOSITORY
 - [README.md](README.md): Overview of repository
 - [lobbyscraper.py](code/lobbyscraper.py): the scraper
-- [html-examples.md](html-examples.md): html examples for each organisation type
 - [CHANGELOG.md](CHANGELOG.md)
 - [LICENSE](LICENSE)
 
-## TODO
-**important**
-- verify the data
-- convert code to Python3: pay attention to encoding issues in i/o operations
-
-**new features**
-- analyze and visualize the data: networkX, maps, Gephi, frequencies, 
-- add country namecodes for easier combinating with other data
-- cluster into sectors
-- parse and map entitites (company name)
-
-## ACTUAL VERSION
-See the [whole history](CHANGELOG.md).
+## CHANGELOG
+See the [whole history](CHANGELOG.md). Next the actual version.
 
 ### Version 0.2: 2016-04-26
 - update documentation: commenting code, update README.md
