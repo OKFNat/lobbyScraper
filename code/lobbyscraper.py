@@ -1,4 +1,4 @@
-#!/bin/env python2
+#!/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -11,14 +11,14 @@ from datetime import datetime, date
 import time
 import json
 import os
+import urllib.request
 from bs4 import BeautifulSoup
-import urllib2
-import dataset
+#import dataset
 
 __author__ = "Stefan Kasberger"
 __copyright__ = "Copyright 2015"
 __license__ = "MIT"
-__version__ = "0.2"
+__version__ = "0.3"
 __maintainer__ = "Stefan Kasberger"
 __email__ = "mail@stefankasberger.at"
 __status__ = "Production" # 'Development', 'Production' or 'Prototype'
@@ -36,7 +36,7 @@ BASE_URL_ATTACHMENTS = 'http://www.lobbyreg.justiz.gv.at'
 QUERY_URL = BASE_URL+'/liste!OpenForm&subf=a'
 DELAY_TIME = 2 # in seconds
 # TS = datetime.now().strftime('%Y-%m-%d-%H-%M')
-TS = '2016-04-19-19-25'
+TS = '2017-07-13-21-47'
 
 ###    FUNCTIONS   ###
 
@@ -53,17 +53,17 @@ def SetupEnvironment():
         os.makedirs(FOLDER_CSV)
 
 def FetchHtml(url):
-    """Fetches html url via urllib2.
+    """Fetches html from the url
     
     Args:
         url: url to fetch (string).
     
     Returns:
-        html: html string as unicode
+        html: html string
     """
-    response = urllib2.urlopen(url)
-    html = response.read().decode('utf-8')
     time.sleep(DELAY_TIME)
+    response = urllib.request.urlopen(url)
+    html = response.read()
     
     return html
 
@@ -78,7 +78,7 @@ def FetchHtmlOverview(url, folder):
 
     if not os.path.exists(folder):
         os.makedirs(folder)
-    Save2File(rawHtml, folder+'/overview-page.htm')
+    Save2File(rawHtml.decode(), folder+'/overview-page.html')
 
 def FetchHtmlEntries(entries, folder):
     """Fetches html from an entry in the table and saves it locally with the unique id as postfix.
@@ -89,7 +89,7 @@ def FetchHtmlEntries(entries, folder):
     """
     for entry in entries:
         html = FetchHtml(entry['url'])
-        Save2File(html, folder+'/entry-'+str(entry['ID'])+'.htm')
+        Save2File(html.decode(), folder+'/entry-'+str(entry['ID'])+'.html')
 
 def Save2File(data, filename):
     """Saves data on specified place on harddrive.
@@ -98,9 +98,13 @@ def Save2File(data, filename):
         data: string to save.
         filename: string of the filepath.
     """
-    text_file = open(filename, "w")
-    text_file.write(data.encode('utf-8'))
-    text_file.close()
+    try:
+        text_file = open(filename, "w")
+        text_file.write(data)
+        text_file.close()
+    except:
+        print('Error writing', filename)
+        return False
 
 def ReadFile(filename):
     """Reads file and returns the text.
@@ -159,7 +163,7 @@ def ParseTable(html):
     lobbyList = []
     counter = 1
 
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, 'html.parser')
     
     # loop over table rows
     for tr in soup.tbody.find_all('tr'):
@@ -168,7 +172,7 @@ def ParseTable(html):
         # assign variables from html table to dict
         entry = {}
         entry['ID'] =  str(counter)
-        entry['entryDescription'] =  unicode(tds[1].string)
+        entry['entryDescription'] =  tds[1].string
         entry['lobbyingOrgaType'] =  tds[3].string
         entry['url'] =  BASE_URL+'/'+tds[2].a['href']
         entry['lastUpdate'] = str(datetime.strptime(tds[5].string, '%d.%m.%Y'))
@@ -216,20 +220,20 @@ def ParseEntries(htmlList, entries):
     entriesList = []
 
     for entry in entries:
-        soup = BeautifulSoup(htmlList[int(entry['ID'])-1])
-        html = unicode(soup)
+        soup = BeautifulSoup(htmlList[int(entry['ID'])-1], "html.parser")
+        html = str(soup)
        
         # regex testing type of registry department: B, C 
         regDepartment = re.findall(r'Registerabteilung:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regDepartment:
             if entry['lobbyingOrgaType'] != regDepartment[0]:
-                print 'ERROR: lobbying organisation type differs!'
+                print('ERROR: lobbying organisation type differs!')
 
         # regex testing register number: B, C
         regNum = re.findall(r'Registerzahl:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
         if regNum:
             if entry['registryNumber'] != regNum[0]:
-                print 'ERROR: company register number differs!'
+                print('ERROR: company register number differs!')
 
         # regex name: A1, B, C
         name = re.findall(r'Name.*:</strong></dt>\n<dd><strong>(.*)</strong></dd></dl>', html)
@@ -245,7 +249,7 @@ def ParseEntries(htmlList, entries):
         lastUpdate = re.findall(r'Letzte .*nderung:</dt>\n<dd>(.*)</dd>', html)
         if lastUpdate:
             if entry['lastUpdate'] != str(datetime.strptime(lastUpdate[0], '%d.%m.%Y')):
-                print "ERROR: register last update differs!"
+                print("ERROR: register last update differs!")
 
         # regex corporate-number: A1, B
         corporateNumber = re.findall(r'Firmenbuchnummer:</dt>\n<dd>(.*)</dd>', html)
@@ -379,7 +383,7 @@ def Save2CSV(entries, filename):
         comment = '""'
 
         # read out each attribute
-        for elem in entry.keys():
+        for elem in list(entry.keys()):
             val = entry[elem]
             if elem == 'ID':
                 uniqueId = '"'+val+'"'
@@ -442,7 +446,7 @@ def Save2CSV(entries, filename):
         csvString += uniqueId+','+entryDescription+','+orgaName+','+busActivities+','+lobOrgaType+','+lobbyists+','+lobbyingRevenue+','+lobbyingRequest+','+numLobbyists+','+costsB+','+costsC+','+regNum+','+compRegNumber+','+subOrganisations+','+legalFoundation+','+codex+','+regOfficeAddress+','+website+','+postalAddress+','+lastUpdate+','+announceDate+','+startBusinessYear+','+url+','+attachments+','+comment+'\n'
 
     Save2File(csvString, filename)
-    print 'Lobbying data exported as CSV:',filename
+    print('Lobbying data exported as CSV:',filename)
 
 def FetchAttachments(entries, folder):
     """Fetches all attachments from the lobbying-register entries.
@@ -452,7 +456,7 @@ def FetchAttachments(entries, folder):
         folder: directory, where the files are stored in.
     """
     for entry in entries:
-        if 'attachmentUrls' in entry.keys():
+        if 'attachmentUrls' in list(entry.keys()):
             for url in entry['attachmentUrls']:
                 DownloadFile(url, folder+'/attachment-'+entry['ID']+'_'+url.split('/')[-1])
 
@@ -465,23 +469,23 @@ def DownloadFile(url, filename):
     """
     if not os.path.exists(os.path.dirname(os.path.abspath(filename))):
         os.makedirs(os.path.dirname(os.path.abspath(filename)))
-    response = urllib2.urlopen(url.encode('utf-8'))
+    response = urllib.request.urlopen(url)
     file = open(filename, 'w')
     file.write(response.read())
     file.close()
     time.sleep(DELAY_TIME)
 
-def Save2SQLite(lobbyEntries):
+#def Save2SQLite(lobbyEntries):
     """Saves the lobbing register entries in a SQLite database. This is not working, because of key-value issues of the dicts().
     
     Args:
         lobbyEntries: list[] of dicts() with lobbying register entries.
     """
-    db = dataset.connect('sqlite:///:memory:')
-    table = db['lobbyRegisterAT']
-    for entry in lobbyEntries:
-        print entry
-        table.insert(entry)
+    #db = dataset.connect('sqlite:///:memory:')
+    #table = db['lobbyRegisterAT']
+    #for entry in lobbyEntries:
+    #    print entry
+    #    table.insert(entry)
 
     # Wien = table.find_one(registeredOffice='Wien')
     # print Wien
@@ -492,26 +496,28 @@ if __name__ == '__main__':
     
     # setup
     startTime = datetime.now()
-    print 'start:', startTime
+    print('start:', startTime)
     SetupEnvironment()
     DOWNLOAD_FILES = False
     PARSE_FILES = False
     DOWNLOAD_ATTACHMENTS = False
-    EXPORT_DATA = False
+    EXPORT_DATA = True
  
     if DOWNLOAD_FILES:
         FetchHtmlOverview(QUERY_URL, FOLDER_RAW_HTML+TS) 
-        htmlOverview = ReadFile(FOLDER_RAW_HTML+TS+'/overview-page.htm')
+        htmlOverview = ReadFile(FOLDER_RAW_HTML+TS+'/overview-page.html')
         lobbyList = ParseTable(htmlOverview) 
-        Save2File(json.dumps(lobbyList, indent=2, ensure_ascii=True), FOLDER_JSON+TS+'_'+FILENAME_BASE+'.json')
+        Save2File(json.dumps(lobbyList, indent=2, sort_keys=True), FOLDER_JSON+TS+'_'+FILENAME_BASE+'.json')
         FetchHtmlEntries(lobbyList, FOLDER_RAW_HTML+TS) 
  
     if PARSE_FILES:
-        htmlOverview = ReadFile(FOLDER_RAW_HTML+TS+'/overview-page.htm')
+        htmlOverview = ReadFile(FOLDER_RAW_HTML+TS+'/overview-page.html')
         lobbyList = ParseTable(htmlOverview) 
+        #lobbyList = lobbyList[:4]
         htmlEntries = ReadEntryFilesInFolder(FOLDER_RAW_HTML+TS) 
+        #htmlEntries = htmlEntries[:4]
         lobbyEntries = ParseEntries(htmlEntries, lobbyList)
-        Save2File(json.dumps(lobbyEntries, indent=2, ensure_ascii=True), FOLDER_JSON+TS+'_'+FILENAME_BASE+'.json')
+        Save2File(json.dumps(lobbyEntries, indent=2, sort_keys=True), FOLDER_JSON+TS+'_'+FILENAME_BASE+'.json')
     
     if DOWNLOAD_ATTACHMENTS:    
         lobbyEntries = ReadFile(FOLDER_JSON+TS+'_'+FILENAME_BASE+'.json')
@@ -522,5 +528,5 @@ if __name__ == '__main__':
         Save2CSV(lobbyEntries, FOLDER_CSV+TS+'_'+FILENAME_BASE+'.csv')
         # Save2SQLite(lobbyEntries) # does not run!
 
-    print 'runtime:', (datetime.now() - startTime)
+    print('runtime:', (datetime.now() - startTime))
 
