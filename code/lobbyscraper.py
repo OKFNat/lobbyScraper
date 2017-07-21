@@ -312,12 +312,15 @@ def ParseEntries(htmlList, entries):
             entry['numLobbyists'] = numLobbyists[0]
 
         # regex costs lobbying: B
-        costsB = re.findall(r'Lobbying-Aufwand > EUR 100.000:</dt>\n<dd>(.*)</dd>', html)
+        costsB = soup.find_all(title="Aufwand für Lobbying-Tätigkeiten im abgelaufenen Wirtschaftsjahr übersteigt EUR 100.000,-")
         if costsB:
-            if costsB[0] == 'Ja':
-                entry['lobbyingCostsGreater100000'] = True
-            if costsB[0] == 'Nein':
-                entry['lobbyingCostsGreater100000'] = False
+            nextElem = str(costsB[0].find_next_siblings('dd'))
+            answer = re.findall(r'<dd>(.*)</dd>', nextElem)[0]
+            if answer == 'Ja':
+                entry['lobbyingCostsGreater100000'] = 'Ja'
+            if answer == 'Nein':
+                entry['lobbyingCostsGreater100000'] = 'Nein'
+
         # regex costs lobbying: C, D
         costsC = re.findall(r'Kosten der Interessenvertretung:</dt>\n<dd>(.*)</dd>', html)
         if costsC:
@@ -499,7 +502,7 @@ if __name__ == '__main__':
     print('start:', startTime)
     SetupEnvironment()
     DOWNLOAD_FILES = False
-    PARSE_FILES = False
+    PARSE_FILES = True
     DOWNLOAD_ATTACHMENTS = False
     EXPORT_DATA = True
  
